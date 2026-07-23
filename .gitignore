@@ -1,23 +1,2 @@
-# macOS
-
-.DS*Store
-.AppleDouble
-.LSOverride
-Icon?
-.*\*
-
-# Editor / IDE
-
-.vscode/
-.idea/
-_.swp
-_~
-
-# Logs / misc
-
-\*.log
-.cache/
-
 # Backup files of index.html
-
-bak\_\*.html
+bak_*.html
