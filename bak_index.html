@@ -320,14 +320,6 @@
         font-size: 13.5px;
         padding: 9px 10px;
         min-height: 40px;
-        height: 40px;
-        max-height: 190px;
-        font-family: inherit;
-        line-height: 1.35;
-        resize: none;
-        overflow-y: hidden;
-        display: block;
-        transition: height 0.12s ease-out;
       }
       .exnote:focus {
         outline: none;
@@ -805,11 +797,12 @@
                 {
                   t: "chest-supported DB row",
                   u: "https://smartworkout.app/en/exercise-library/back/incline-bench-dumbbell-wide-row",
-                },
+                },  
                 {
                   t: "plate-loaded iso-lateral row",
                   u: "https://smartworkout.app/en/exercise-library/back/chest-supported-machine-row",
                 },
+                
               ],
               note: "Chest glued to the pad. Squeeze shoulder blades back and down — no shrugging.",
             },
@@ -1626,7 +1619,7 @@
         <div class="demos">${demos}</div>
         ${lt ? `<div class="lasttime">Last: <span class="num">${lt}</span>${best !== null ? ` · Best: <span class="num">${best} ${prefs.unit}</span>` : ""}</div>` : best !== null ? `<div class="lasttime">Best: <span class="num">${best} ${prefs.unit}</span></div>` : ""}
         <div class="note">${e.note}</div>
-        <textarea class="exnote" rows="1" placeholder="Notes (seat height, cable pin, cues…) — carries to next session" oninput="updNote('${e.id}',this.value);noteAutosize(this)" onfocus="noteAutosize(this)" onblur="noteCollapse(this)">${esc(sess.notes && sess.notes[e.id] ? sess.notes[e.id] : "")}</textarea>
+        <input class="exnote" type="text" placeholder="Notes (seat height, cable pin, cues…) — carries to next session" value="${esc(sess.notes && sess.notes[e.id] ? sess.notes[e.id] : "")}" oninput="updNote('${e.id}',this.value)">
       </div>
       <table class="sets">
         <tr><th>Set</th><th>${e.timed ? "Time (sec)" : "Reps"}</th><th>Weight (${prefs.unit})</th><th class="cdone">Done</th></tr>
@@ -1698,9 +1691,8 @@
                   const f = fmtSets(sets);
                   const e = EXMAP[exId] || { name: exId };
                   const noteTxt = s.notes && s.notes[exId] ? s.notes[exId] : "";
-                  const unitLbl = e.timed ? "sec" : s.unit || "lb";
                   if (!f && !noteTxt) return "";
-                  return `<div class="exline"><div class="n">${e.name}</div>${f ? `<div class="v num">${f} <span style="color:var(--faint)">(${unitLbl})</span></div>` : ""}${noteTxt ? `<div class="exnote-h">📝 ${esc(noteTxt)}</div>` : ""}</div>`;
+                  return `<div class="exline"><div class="n">${e.name}</div>${f ? `<div class="v num">${f} <span style="color:var(--faint)">(${s.unit || "lb"})</span></div>` : ""}${noteTxt ? `<div class="exnote-h">📝 ${esc(noteTxt)}</div>` : ""}</div>`;
                 })
                 .join("")}
       <div class="hist-actions">
@@ -1737,7 +1729,7 @@
       </tr>`,
         )
         .join("")}</table>
-      <textarea class="exnote" rows="1" placeholder="Notes…" oninput="editNote(${idx},'${exId}',this.value);noteAutosize(this)" onfocus="noteAutosize(this)" onblur="noteCollapse(this)">${esc(noteTxt)}</textarea></div>`;
+      <input class="exnote" type="text" placeholder="Notes…" value="${esc(noteTxt)}" oninput="editNote(${idx},'${exId}',this.value)"></div>`;
         });
         h += `<div class="hist-actions">
     <button class="hbtn save" onclick="editSave()">Done</button>
@@ -1841,39 +1833,6 @@
         sess.notes[exId] = val.slice(0, 200);
         queueSave();
       };
-      window.noteAutosize = (el) => {
-        el.style.height = "auto";
-        const h = el.scrollHeight;
-        el.style.height = Math.min(h, 190) + "px";
-        el.style.overflowY = h > 190 ? "auto" : "hidden";
-      };
-      window.noteCollapse = (el) => {
-        el.style.height = "40px";
-        el.style.overflowY = "hidden";
-        el.scrollTop = 0;
-      };
-      /* iOS focus-zoom fix: Safari zooms in on small inputs but never zooms back out on blur.
-   After a field loses focus (and no other field takes it), momentarily rewrite the viewport
-   meta to force a re-evaluation, which snaps the page back to scale 1.0. */
-      window.resetZoom = () => {
-        setTimeout(() => {
-          const ae = document.activeElement;
-          if (ae && (ae.tagName === "INPUT" || ae.tagName === "TEXTAREA"))
-            return; // moved to another field — let iOS handle it
-          const vp = document.querySelector("meta[name=viewport]");
-          if (!vp) return;
-          const orig = vp.content;
-          vp.content =
-            "width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no";
-          requestAnimationFrame(() => {
-            vp.content = orig;
-          });
-        }, 100);
-      };
-      document.addEventListener("focusout", (e) => {
-        const t = e.target;
-        if (t && t.matches && t.matches(".exnote,.setin,.datein")) resetZoom();
-      });
       window.finish = async (dayId) => {
         const sess = active[dayId];
         if (!sess) return;
